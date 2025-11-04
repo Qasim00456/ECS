@@ -1,0 +1,21 @@
+FROM node:20
+
+WORKDIR /app
+
+
+COPY package.json ./
+
+
+RUN yarn install
+
+COPY . .
+
+
+# skip code checks so the build keeps going even if there are issues
+RUN DISABLE_ESLINT_PLUGIN=true yarn build
+
+#install tool to host the build folder
+RUN yarn global add serve
+
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"]

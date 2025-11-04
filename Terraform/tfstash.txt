@@ -1,0 +1,41 @@
+# s3 logs
+# ALB logs S3 bucket
+resource "aws_s3_bucket" "lb_logs" {
+  bucket = "my-alb-logs-bucket-for-ecs-project-09-2025"
+
+  # allow server side encryption for security
+  # server_side_encryption_configuration {
+  #   rule {
+  #     apply_server_side_encryption_by_default {
+  #       sse_algorithm = "AES256"
+  #     }
+  #   }
+  # }
+  tags = {
+    Name = "ALB logs"
+    Environment = "production"
+  }
+}
+
+# IAM policy document allowing ALB to write logs
+data "aws_iam_policy_document" "allow_alb_logging" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logging.elasticloadbalancing.amazonaws.com"]
+    }
+
+    actions = ["s3:PutObject"]
+
+    resources = ["${aws_s3_bucket.lb_logs.arn}/*"]
+  }
+}
+
+# The policy that will be attached to the S3 bucket
+# Attach policy to S3 bucket
+resource "aws_s3_bucket_policy" "lb_logs_policy" {
+  bucket = aws_s3_bucket.lb_logs.id
+  policy = data.aws_iam_policy_document.allow_alb_logging.json
+}
