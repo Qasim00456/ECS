@@ -11,7 +11,6 @@ RUN yarn install
 COPY . .
 
 
-
 # skip code checks so the build keeps going even if there are issues
 RUN DISABLE_ESLINT_PLUGIN=true yarn build
 
