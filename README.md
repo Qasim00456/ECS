@@ -183,5 +183,7 @@ Terraform pipelines manage infrastructure provisioning via `plan`, `apply`, and 
 
 ---
 
+# Architecture Diagram
+![1762772792336](https://github.com/user-attachments/assets/61466d44-65f4-4240-b649-08e4e97320fe)
 
 
