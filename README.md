@@ -9,7 +9,7 @@ Below is a live instance of the threat modelling tool:
 <img width="823" height="463" alt="image" src="https://github.com/user-attachments/assets/18f25b34-097b-46b6-9c00-283f4b674a00" />
 
 
-Features
+#Features
 
 Containerized Application: Dockerized Amazon’s threat modelling tool for consistent, portable deployments.
 
@@ -28,7 +28,7 @@ Security and Compliance Checks: Integrated tools like Trivy and TFLint to scan f
 End-to-End DevOps Solution: Complete workflow from container build to infrastructure provisioning and automated deployment.
 
 
-1. Local Application Setup
+# 1 Local Application Setup
 
 To run the Threat Modelling tool locally:
 
@@ -51,7 +51,7 @@ yarn start
 Open your browser at http://localhost:3000
  to interact with the application.
 
-2. Local Docker Container Setup
+# 2. Local Docker Container Setup
 
 To run the application in Docker:
 
