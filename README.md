@@ -125,4 +125,82 @@ Manages DNS and domain routing, enabling access to the application via a custom 
 - **Hosted Zones & DNS Records:** Route user requests through a friendly domain name.  
 - **SSL Certificates (ACM):** Enable HTTPS for secure communication.  
 
+Dockerfile Breakdown
+The Dockerfile now consists of two distinct stages labeled "build" and "production". Below is a detailed examination of each stage:
+
+Stage 1: Build
+For the initial stage, we use node:18-alpine as the base image, which is known for its minimal footprint compared to the standard Node.js images. The operations performed in this stage include:
+
+Setting Up the Working Directory:
+
+We establish /app as the working directory.
+Copying Necessary Files:
+
+Key files such as package.json and yarn.lock are transferred into the image.
+Installing Dependencies:
+
+We execute yarn install with an extended network timeout to ensure all dependencies are thoroughly fetched and installed.
+Copying Application Files:
+
+All necessary application files are copied into the Docker image.
+This stage focuses on assembling the application in a controlled, Docker-contained environment. It ensures that only essential dependencies and build tools are included in the final production image.
+
+Stage 2: Production
+The second stage also starts with the node:18-alpine base image. This part of the process is streamlined to include only what is necessary for running the application in a production environment:
+
+Preparing the Application:
+
+The entire application directory from the build stage is copied over to the new stage. This method ensures that the production image contains only the compiled application and its runtime dependencies, excluding any build-specific tools and intermediate files.
+Exposing the Port:
+
+The Dockerfile specifies port 3000 for the application, making it accessible on this port.
+Starting the Application:
+
+The final command in the Dockerfile is set to run the application using yarn start.
+Importance of Multi-Stage Builds
+Multi-stage builds provide significant advantages:
+
+Efficiency in Image Size:
+
+By separating the build environment from the production environment, we significantly reduce the final image size, which speeds up the deployment process and minimizes runtime resource utilization.
+Security:
+
+Smaller images generally contain fewer components, which can reduce the attack surface of the container.
+Cost-Effective:
+
+Smaller images mean less storage and bandwidth consumption, translating to cost savings, especially in scaled environments.
+CICD Pipelines
+Docker.Yaml
+The docker.yaml pipeline is explained below, it is the pipeline we have that is responsible for building the docker image and uploading it to Amazon ECR, it is defined so that the build and push only triggers when a change has been made to the application code
+
+Checkout Code:
+Pulls the latest code from the repository.
+Log in to Amazon ECR:
+Authenticates Docker with ECR, allowing it to push images to your ECR repository.
+Build and Push Docker Image:
+Builds the Docker image from the Dockerfile in the app directory.
+Pushes the tagged image to the specified ECR repository.
+Terraform YAML files
+The terraform pipelines we have, are responsible for terraform plan, apply and destroy. They are triggered only when a change has been made to the tf config
+
+The terraform plan pipeline is set which means it runs on a push from any branch. The terraform apply and destroy pipelines can only be triggered manually using workflow-dispatch on the main branch (Once a PR has been completed).
+
+Checkout Code:
+
+Retrieves the latest repository files.
+Setup Terraform:
+
+Installs and sets up Terraform in the workflow environment.
+Terraform Init:
+
+Initializes the Terraform configuration and downloads provider plugins.
+Terraform Plan:
+
+Creates an execution plan, displaying the resources Terraform will create or modify.
+Terraform Apply:
+
+Applies the configuration to provision the infrastructure if triggered manually.
+Terraform Destroy:
+
+Applies the destroy to the infrastructure if triggered manually within the main branch.
 
