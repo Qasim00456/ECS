@@ -125,82 +125,63 @@ Manages DNS and domain routing, enabling access to the application via a custom 
 - **Hosted Zones & DNS Records:** Route user requests through a friendly domain name.  
 - **SSL Certificates (ACM):** Enable HTTPS for secure communication.  
 
-Dockerfile Breakdown
-The Dockerfile now consists of two distinct stages labeled "build" and "production". Below is a detailed examination of each stage:
 
-Stage 1: Build
-For the initial stage, we use node:18-alpine as the base image, which is known for its minimal footprint compared to the standard Node.js images. The operations performed in this stage include:
+# Dockerfile Breakdown
 
-Setting Up the Working Directory:
+The Dockerfile consists of two distinct stages labeled **"build"** and **"production"**. Below is a detailed examination of each stage:
 
-We establish /app as the working directory.
-Copying Necessary Files:
+## Stage 1: Build
 
-Key files such as package.json and yarn.lock are transferred into the image.
-Installing Dependencies:
+- **Base Image:** Uses `node:18-alpine`, chosen for its minimal footprint compared to standard Node.js images.  
+- **Working Directory:** Sets `/app` as the working directory.  
+- **Copying Files:** Copies essential files such as `package.json` and `yarn.lock` into the image.  
+- **Installing Dependencies:** Runs `yarn install` with an extended network timeout to fetch and install all dependencies reliably.  
+- **Copying Application Files:** Copies all necessary application files into the Docker image.
 
-We execute yarn install with an extended network timeout to ensure all dependencies are thoroughly fetched and installed.
-Copying Application Files:
+This stage assembles the application in a controlled, Docker-contained environment, ensuring that only essential dependencies and build tools are included in the final production image.
 
-All necessary application files are copied into the Docker image.
-This stage focuses on assembling the application in a controlled, Docker-contained environment. It ensures that only essential dependencies and build tools are included in the final production image.
+## Stage 2: Production
 
-Stage 2: Production
-The second stage also starts with the node:18-alpine base image. This part of the process is streamlined to include only what is necessary for running the application in a production environment:
+- **Base Image:** Starts again with `node:18-alpine` to keep the final image minimal.  
+- **Preparing the Application:** Copies the compiled application directory from the build stage to ensure the production image contains only runtime dependencies, excluding build tools and intermediate files.  
+- **Exposing Port:** Specifies port `3000` for application access.  
+- **Starting the Application:** Runs the application with `yarn start`.
 
-Preparing the Application:
+## Importance of Multi-Stage Builds
 
-The entire application directory from the build stage is copied over to the new stage. This method ensures that the production image contains only the compiled application and its runtime dependencies, excluding any build-specific tools and intermediate files.
-Exposing the Port:
+- **Efficiency in Image Size:** Separating build and production environments significantly reduces the final image size, speeding up deployments and minimizing resource usage.  
+- **Security:** Smaller images contain fewer components, reducing the container’s attack surface.  
+- **Cost-Effective:** Smaller images consume less storage and bandwidth, lowering costs especially at scale.
 
-The Dockerfile specifies port 3000 for the application, making it accessible on this port.
-Starting the Application:
+---
 
-The final command in the Dockerfile is set to run the application using yarn start.
-Importance of Multi-Stage Builds
-Multi-stage builds provide significant advantages:
+# CI/CD Pipelines
 
-Efficiency in Image Size:
+## Docker Pipeline (`docker.yaml`)
 
-By separating the build environment from the production environment, we significantly reduce the final image size, which speeds up the deployment process and minimizes runtime resource utilization.
-Security:
+This pipeline is responsible for building the Docker image and uploading it to Amazon ECR. It is configured to trigger only when application code changes are made.
 
-Smaller images generally contain fewer components, which can reduce the attack surface of the container.
-Cost-Effective:
+- **Checkout Code:** Pulls the latest code from the repository.  
+- **Log in to Amazon ECR:** Authenticates Docker with ECR to enable pushing images.  
+- **Build and Push Docker Image:** Builds the Docker image from the Dockerfile and pushes the tagged image to the specified ECR repository.
 
-Smaller images mean less storage and bandwidth consumption, translating to cost savings, especially in scaled environments.
-CICD Pipelines
-Docker.Yaml
-The docker.yaml pipeline is explained below, it is the pipeline we have that is responsible for building the docker image and uploading it to Amazon ECR, it is defined so that the build and push only triggers when a change has been made to the application code
+## Terraform Pipelines
 
-Checkout Code:
-Pulls the latest code from the repository.
-Log in to Amazon ECR:
-Authenticates Docker with ECR, allowing it to push images to your ECR repository.
-Build and Push Docker Image:
-Builds the Docker image from the Dockerfile in the app directory.
-Pushes the tagged image to the specified ECR repository.
-Terraform YAML files
-The terraform pipelines we have, are responsible for terraform plan, apply and destroy. They are triggered only when a change has been made to the tf config
+Terraform pipelines manage infrastructure provisioning via `plan`, `apply`, and `destroy` workflows. They trigger only when Terraform configuration files change.
 
-The terraform plan pipeline is set which means it runs on a push from any branch. The terraform apply and destroy pipelines can only be triggered manually using workflow-dispatch on the main branch (Once a PR has been completed).
+- **Terraform Plan Pipeline:** Runs automatically on every push to any branch, creating an execution plan that shows resources to be created or modified.  
+- **Terraform Apply & Destroy Pipelines:** Can only be triggered manually using `workflow_dispatch` on the `main` branch, usually after a pull request is merged.
 
-Checkout Code:
+### Pipeline Steps:
 
-Retrieves the latest repository files.
-Setup Terraform:
+- **Checkout Code:** Retrieves the latest repository files.  
+- **Setup Terraform:** Installs and configures Terraform in the workflow environment.  
+- **Terraform Init:** Initializes Terraform and downloads required provider plugins.  
+- **Terraform Plan:** Generates an execution plan detailing infrastructure changes.  
+- **Terraform Apply:** Applies the planned changes when triggered manually.  
+- **Terraform Destroy:** Destroys the provisioned infrastructure when triggered manually.
 
-Installs and sets up Terraform in the workflow environment.
-Terraform Init:
+---
 
-Initializes the Terraform configuration and downloads provider plugins.
-Terraform Plan:
 
-Creates an execution plan, displaying the resources Terraform will create or modify.
-Terraform Apply:
-
-Applies the configuration to provision the infrastructure if triggered manually.
-Terraform Destroy:
-
-Applies the destroy to the infrastructure if triggered manually within the main branch.
 
